@@ -22,9 +22,7 @@
 				__DIR__.'/other/public/assets'  => public_path('/assets'),
 			],'file-manager');
 
-			$this->publishes([
-				__DIR__.'\other\resources' => base_path('resources'),
-			], 'file-manager');
+			$this->loadViewsFrom(__DIR__.'/other/resources/views', 'filemanager');
 
 			$this->publishes([
 				__DIR__.'/other/config/filemanager.php' => config_path(),

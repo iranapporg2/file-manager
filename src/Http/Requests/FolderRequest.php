@@ -10,6 +10,7 @@
 
 			return [
 				'name' => ['required'],
+				'folder_id' => ['nullable', 'exists:folders,id'],
 			];
 		}
 

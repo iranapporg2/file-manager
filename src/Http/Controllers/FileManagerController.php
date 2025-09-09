@@ -1,179 +1,212 @@
 <?php
 
-    namespace itsunn\Filemanager\Http\Controllers;
+	namespace itsunn\Filemanager\Http\Controllers;
 
-    use itsunn\Filemanager\Enums\FileTypeEnum;
-    use itsunn\Filemanager\Http\Requests\StoreFileRequest;
-    use itsunn\Filemanager\Models\File;
-    use itsunn\Filemanager\Services\FileService;
-    use Illuminate\Http\Request;
-    use Illuminate\Routing\Controller;
-    use Illuminate\Support\Facades\Storage;
+	use itsunn\Filemanager\Enums\FileTypeEnum;
+	use itsunn\Filemanager\Http\Requests\StoreFileRequest;
+	use itsunn\Filemanager\Models\File;
+	use itsunn\Filemanager\Models\Folder;
+	use itsunn\Filemanager\Services\FileService;
+	use Illuminate\Http\Request;
+	use Illuminate\Routing\Controller;
+	use Illuminate\Support\Facades\Storage;
 
-    class FileManagerController extends Controller {
+	class FileManagerController extends Controller {
 
-        /**
-         * Display a listing of the resource.
-         */
-        public function index(Request $request) {
+		/**
+		 * Display a listing of the resource.
+		 */
+		public function index(Request $request) {
 
-            $files = File::query()->where(function($query) use ($request) {
+			$files = File::query()->where(function($query) use ($request) {
 				if ($request->filled('search')) $query->where('title','%'.$request->get('search').'%');
-				if ($request->filled('folder')) $query->where('folder',$request->get('folder'));
+				if ($request->filled('folder_id'))
+					$query->where('folder_id',$request->get('folder_id'));
+				else
+					$query->where('folder_id',null);
+			})->latest()->get();
+
+			$folders = Folder::query()->where(function($query) use ($request) {
+				if ($request->filled('folder_id')) {
+					$query->where('folder_id', $request->get('folder_id'));
+					$query->where('id','<>',$request->get('folder_id'));
+				}
+				else
+					$query->where('folder_id',null);
 			})->get();
 
-            return $this->response(true, $files);
+			$back_folder = null;
+			if ($request->filled('folder_id')) {
+				$folder = Folder::find($request->get('folder_id'));
+				$back_folder = $folder->folder_id;
+			}
 
-        }
+			return view('welcome', compact('files','folders','back_folder'));
 
-        /**
-         * Show the form for creating a new resource.
-         */
-        public function create() {
+		}
 
-        }
+		/**
+		 * Show the form for creating a new resource.
+		 */
+		public function create() {
 
-        /**
-         * Store a newly created resource in storage.
-         */
-        public function store(StoreFileRequest $request) {
+		}
 
-            set_time_limit(0);
+		/**
+		 * Store a newly created resource in storage.
+		 */
+		public function store(StoreFileRequest $request) {
 
-            $userData = $request->except(['original_name','file_url']);
+			set_time_limit(0);
 
-            $files = $this->resolveFiles($request);
+			$userData = $request->except(['original_name','file_url']);
 
-            if (count($files) == 0)
-                return $this->response(false, 'امکان اپلود وجود ندارد.');
+			$files = $this->resolveFiles($request);
 
-            $path = $request->path;
+			if (count($files) == 0)
+				return $this->response(false, 'امکان اپلود وجود ندارد.');
 
-            foreach ($files as $file) {
+			$path = $this->getFinalPath($request->folder_id);
+			$userData['path'] = $path;
 
-                $created_file = File::query()->create($userData);
+			foreach ($files as $file) {
 
-                $config = [
-                    'disk' => $request->driver,
-                    'channel_id' => $request->channel_id,
-                    'title' => $request->title,
-                ];
+				$created_file = File::query()->create($userData);
 
-                if ($request->original_name == 1) {
+				$config = [
+					'disk' => $request->driver,
+					'channel_id' => $request->channel_id,
+					'title' => $request->title,
+				];
 
-                    $filename = $file->getClientOriginalName();
+				if ($request->original_name == 1) {
 
-                    if (Storage::disk($request->driver)->exists("$path/$filename")) {
-                        return $this->response(false, 'چنین فایلی قبلا آپلود شده است.');
-                    }
+					$filename = $file->getClientOriginalName();
 
-                } else
-                    $filename = $file->hashName();
+					if (Storage::disk($request->driver)->exists("$path/$filename")) {
+						return $this->response(false, 'چنین فایلی قبلا آپلود شده است.');
+					}
 
-                $result = $file->storeAs($path, $filename, $config);
+				} else
+					$filename = $file->hashName();
 
-                if (!$result) {
-                    return $this->response(false, 'متاسفانه آپلود با شکست مواجه شد.');
-                }
+				$result = $file->storeAs($path, $filename, $config);
 
-                $userData = $this->buildMetaTags($filename, $userData, $file);
+				if (!$result) {
+					return $this->response(false, 'متاسفانه آپلود با شکست مواجه شد.');
+				}
 
-                $created_file->update($userData);
+				$userData = $this->buildMetaTags($filename, $userData, $file);
 
-            }
+				$created_file->update($userData);
 
-            return $this->response(true, 'فایل جدید با موفقیت ذخیره شد');
+			}
 
-        }
+			return $this->response(true, 'فایل جدید با موفقیت ذخیره شد');
 
-        /**
-         * Display the specified resource.
-         */
-        public function show() {
+		}
 
-        }
+		/**
+		 * Display the specified resource.
+		 */
+		public function show() {
 
-        /**
-         * Show the form for editing the specified resource.
-         */
-        public function edit() {
-        }
+		}
 
-        /**
-         * Update the specified resource in storage.
-         */
-        public function update(StoreFileRequest $request, File $file) {
+		/**
+		 * Show the form for editing the specified resource.
+		 */
+		public function edit() {
+		}
 
-            $file->update($request->validated());
+		/**
+		 * Update the specified resource in storage.
+		 */
+		public function update(StoreFileRequest $request, File $file) {
 
-            return $this->response(true, 'تغییرات با موفقیت اعمال شد.');
+			$file->update($request->validated());
 
-        }
+			return $this->response(true, 'تغییرات با موفقیت اعمال شد.');
 
-        public function destroy(File $file) {
+		}
 
-            $file->delete();
-            Storage::disk($file->driver)->delete($file->path.'/'.$file->filename);
+		public function destroy(File $file) {
 
-            return $this->response(true,'فایل مورد نظر حذف شد');
+			$file->delete();
+			Storage::disk($file->driver)->delete($file->path.'/'.$file->filename);
 
-        }
+			return back();
 
-        private function response($status, $message = '', $data = null, $statusCode = 200) {
+		}
 
-            $message = [
-                'status' => $status,
-                'message' => $message
-            ];
+		private function response($status, $message = '', $data = null, $statusCode = 200) {
 
-            if (!is_null($data))
-                $message['data'] = $data;
+			$message = [
+				'status' => $status,
+				'message' => $message
+			];
 
-            return response()->json($message, $statusCode, [], JSON_UNESCAPED_UNICODE);
+			if (!is_null($data))
+				$message['data'] = $data;
 
-        }
+			return response()->json($message, $statusCode, [], JSON_UNESCAPED_UNICODE);
 
-        /**
-         * @param StoreFileRequest $request
-         * @return array|\Illuminate\Http\UploadedFile[]|\Illuminate\Http\UploadedFile[][]
-         */
-        private function resolveFiles(StoreFileRequest $request): array {
+		}
 
-            if (count($request->allFiles()) == 0 && $request->filled('file_url')) {
-                $files[] = FileService::getUrlAsUploadedFile($request->get('file_url'));
-            } else {
-                if ($request->auto_extract_zip) {
-                    $files = FileService::extractZipFile($request->file('files')->path());
-                } else
-                    $files = $request->allFiles();
-            }
+		/**
+		 * @param StoreFileRequest $request
+		 * @return array|\Illuminate\Http\UploadedFile[]|\Illuminate\Http\UploadedFile[][]
+		 */
+		private function resolveFiles(StoreFileRequest $request): array {
 
-            return $files;
-        }
+			if (count($request->allFiles()) == 0 && $request->filled('file_url')) {
+				$files[] = FileService::getUrlAsUploadedFile($request->get('file_url'));
+			} else {
+				if ($request->auto_extract_zip) {
+					$files = FileService::extractZipFile($request->file('files')->path());
+				} else
+					$files = $request->allFiles();
+			}
 
-        /**
-         * @param string $filename
-         * @param array $userData
-         * @param array|\Illuminate\Http\UploadedFile $file
-         * @param FileTypeEnum $file_type
-         * @return array
-         */
-        private function buildMetaTags(string $filename, array $userData, array|\Illuminate\Http\UploadedFile $file): array {
+			return $files;
+		}
 
-            $file_type = FileService::getFileType($file->getClientOriginalExtension());
+		/**
+		 * @param string $filename
+		 * @param array $userData
+		 * @param array|\Illuminate\Http\UploadedFile $file
+		 * @param FileTypeEnum $file_type
+		 * @return array
+		 */
+		private function buildMetaTags(string $filename, array $userData, array|\Illuminate\Http\UploadedFile $file): array {
 
-            $userData['filename'] = $filename;
-            $userData['filesize'] = $file->getSize();
-            $userData['type'] = $file_type;
-            $userData['content_type'] = $file->getClientMimeType();
-            $userData['properties'] = FileService::getFileProperties($file_type, $file->path());
+			$file_type = FileService::getFileType($file->getClientOriginalExtension());
 
-            if (\request()->driver == 'arvan') {
-                $userData['properties'] = Storage::disk('arvan')->getAdapter()->properties();
-            }
+			$userData['filename'] = $filename;
+			$userData['filesize'] = $file->getSize();
+			$userData['type'] = $file_type;
+			$userData['content_type'] = $file->getClientMimeType();
+			$userData['properties'] = FileService::getFileProperties($file_type, $file->path());
 
-            return $userData;
+			if (\request()->driver == 'arvan') {
+				$userData['properties'] = Storage::disk('arvan')->getAdapter()->properties();
+			}
 
-        }
+			return $userData;
 
-    }
+		}
+
+		private function getFinalPath($folder_id): string
+		{
+			if (empty($folder_id)) {
+				return '/';
+			}
+
+			$folder = Folder::findOrFail($folder_id);
+
+			$segments = $folder->ancestors()->pluck('name')->filter()->values()->all();
+
+			return '/' . implode('/', $segments);
+		}
+
+	}

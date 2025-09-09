@@ -15,6 +15,7 @@
             Schema::create('files', function (Blueprint $table) {
                 $table->id();
                 $table->nullableMorphs('creator');
+				$table->foreignId('folder_id')->nullable()->references('id')->on('folders')->onDelete('cascade');
                 $table->string('title');
                 $table->string('description')->nullable();
                 $table->string('path')->default('/');

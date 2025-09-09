@@ -27,7 +27,7 @@
             ];
 
             if (request()->isMethod('POST')) {
-                $rules['path'] = ['nullable', 'string', 'max:255'];
+                $rules['folder_id'] = ['nullable', 'exists:folders,id'];
                 $rules['driver'] = ['required', Rule::in(FileDriverEnum::values())];
                 $rules['channel_id'] = ['nullable','string'];
                 $rules['original_name'] = ['nullable', 'boolean'];

@@ -22,7 +22,8 @@
         "league/flysystem-aws-s3-v3": "^3.29",
         "league/flysystem-ftp": "^3.29",
         "ext-zip": "*",
-        "laravel/framework": "^12.28"
+        "laravel/framework": "^12.28",
+        "hekmatinasser/verta": "^8.5"
     },
     "extra": {
         "laravel": {
