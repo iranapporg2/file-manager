@@ -27,7 +27,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "itsunn\\Filemanager\\MainProvider",
+                "itsunn\\Filemanager\\MainProvider"
             ]
         }
     }
