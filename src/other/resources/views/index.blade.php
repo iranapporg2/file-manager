@@ -93,6 +93,9 @@
                         @method('DELETE')
                     </form>
 
+                    <a href="{{$file->FullPath}}" class="btn btn-info">
+                        دانلود
+                    </a>
                 </td>
             </tr>
         @endforeach

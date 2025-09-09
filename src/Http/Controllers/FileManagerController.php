@@ -41,7 +41,7 @@
 				$back_folder = $folder->folder_id;
 			}
 
-			return view('welcome', compact('files','folders','back_folder'));
+			return view('filemanager::index', compact('files','folders','back_folder'));
 
 		}
 
