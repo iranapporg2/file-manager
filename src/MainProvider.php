@@ -12,7 +12,7 @@
 
 			$this->publishes([
 				__DIR__.'/other/config' => config_path(),
-			],'iranapp-config');
+			],'file-manager');
 
 			$this->publishes([
 				__DIR__.'/other/database/migrations'  => database_path('migrations'),
@@ -23,7 +23,7 @@
 			],'file-manager');
 
 			$this->publishes([
-				__DIR__.'/other/config/filemanager.php' => config_path('filemanager.php'),
+				__DIR__.'/other/config/filemanager.php' => config_path(),
 			], 'file-manager');
 
 			$existing = config('filesystems.disks', []);
