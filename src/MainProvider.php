@@ -24,7 +24,7 @@
 
 			$this->publishes([
 				__DIR__.'/other/config/filemanager.php' => config_path('filemanager.php'),
-			], 'filemanager');
+			], 'file-manager');
 
 			$existing = config('filesystems.disks', []);
 			$package  = config('filemanager.disks', []);
