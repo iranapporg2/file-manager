@@ -43,5 +43,4 @@
 				'timeout' => 2500, // Connection timeout in seconds
 			],
 		],
-
 	];

@@ -22,11 +22,20 @@
 				__DIR__.'/other/public'  => public_path('assets'),
 			],'file-manager');
 
+			$this->publishes([
+				__DIR__.'/other/config/filemanager.php' => config_path('filemanager.php'),
+			], 'filemanager');
+
+			$existing = config('filesystems.disks', []);
+			$package  = config('filemanager.disks', []);
+
+			config()->set('filesystems.disks', array_replace_recursive($existing, $package));
+
 		}
 
 		public function register()
 		{
-
+			$this->mergeConfigFrom(__DIR__.'/../config/filemanager.php', 'filemanager');
 		}
 
 	}
