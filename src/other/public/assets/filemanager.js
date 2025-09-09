@@ -1,59 +1,56 @@
-// function onStartEvent() {}
-// function onSuccessEvent(data) {}
-// function onFailedEvent(status) {}
-// function onProgressEvent(progress) {}
-
 document.addEventListener("DOMContentLoaded", function () {
+    let form_ajax = false;
 
-    var form_ajax;
+    document.addEventListener("submit", function (e) {
+        const form = e.target;
 
-    $(document).on('submit', 'form[data-ajax]', function (e) {
-        e.preventDefault();
+        if (form.matches("form[data-ajax]")) {
+            e.preventDefault();
 
-        if (form_ajax) return;
+            if (form_ajax) return;
+            form_ajax = true;
 
-        form_ajax = true;
-
-        if (typeof onStartEvent === 'function') {
-            onStartEvent();
-        }
-
-        // Create a new FormData object to handle both files and other input fields
-        let formData = new FormData($(this)[0]);
-
-        $.ajax({
-            type: 'post',
-            url: $(this).attr('action'),
-            data: formData, // No need to JSON.stringify formData, it's already the right format
-            processData: false, // Prevent jQuery from automatically transforming the data into a query string
-            contentType: false, // Let the browser set the content type, including boundaries for file uploads
-            success: function (msg) {
-                form_ajax = false;
-                if (typeof onSuccessEvent === 'function') {
-                    onSuccessEvent(msg);
-                }
-            },
-            xhr: function () {
-                var xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener("progress", function (evt) {
-                    if (evt.lengthComputable) {
-                        var percentComplete = Math.round((evt.loaded / evt.total) * 100);
-                        if (typeof onProgressEvent === 'function') {
-                            onProgressEvent(percentComplete);
-                        }
-                    }
-                }, false);
-
-                return xhr;
-            },
-            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                form_ajax = false;
-                if (typeof onFailedEvent === 'function') {
-                    onFailedEvent(textStatus);
-                }
+            if (typeof onStartEvent === "function") {
+                onStartEvent();
             }
-        }).always(function () {
-            form_ajax = false;
-        });
+
+            const formData = new FormData(form);
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", form.getAttribute("action"), true);
+
+            // پیشرفت آپلود
+            xhr.upload.addEventListener("progress", function (evt) {
+                if (evt.lengthComputable) {
+                    const percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                    if (typeof onProgressEvent === "function") {
+                        onProgressEvent(percentComplete);
+                    }
+                }
+            });
+
+            // موفقیت
+            xhr.onload = function () {
+                form_ajax = false;
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    if (typeof onSuccessEvent === "function") {
+                        onSuccessEvent(JSON.parse(xhr.responseText));
+                    }
+                } else {
+                    if (typeof onFailedEvent === "function") {
+                        onFailedEvent(xhr.statusText || "Error");
+                    }
+                }
+            };
+
+            // خطا
+            xhr.onerror = function () {
+                form_ajax = false;
+                if (typeof onFailedEvent === "function") {
+                    onFailedEvent(xhr.statusText || "Network Error");
+                }
+            };
+
+            xhr.send(formData);
+        }
     });
 });

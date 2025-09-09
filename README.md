@@ -2,6 +2,9 @@
 
 Laravel File Manager is a flexible and pluggable file management package for Laravel. It allows you to easily upload and manage files across different storage drivers such as local disk, FTP, S3, or ArvanCloud. This package provides ready-to-use controllers, AJAX-based JavaScript support, and blade view examples to get started quickly.
 
+### Attention!
+The package, override public and private and s3 disk on your filesystems.php.
+
 ---
 
 ## 📚 Table of Contents
@@ -49,6 +52,30 @@ php artisan vendor:publish --tag=file-manager
 
 Update your `config/filesystems.php` with your custom drivers and credentials as needed.
 
+### Needing env config:
+**Public Disk**:    
+FILE_MANAGER_PUBLIC_ROOT=/root/
+
+**Arvan Disk:**     
+ARVAN_ACCESS_KEY=   
+ARVAN_SECRET_KEY=   
+ARVAN_BUCKET=   
+ARVAN_API_KEY=  
+ARVAN_URL=
+
+**FTP Disk:**   
+FTP_HOST=   
+FTP_USERNAME=       
+FTP_PASSWORD=   
+FTP_URL=    
+FTP_ROOT_FOLDER=
+
+**S3 Disk:**    
+AWS_ACCESS_KEY_ID=  
+AWS_SECRET_ACCESS_KEY=  
+AWS_DEFAULT_REGION=us-east-1    
+AWS_BUCKET= 
+AWS_USE_PATH_STYLE_ENDPOINT=false   
 ---
 
 ## 📂 Publishing Resources
@@ -56,8 +83,6 @@ Update your `config/filesystems.php` with your custom drivers and credentials as
 Publish migrations, config, and public assets:
 
 ```bash
-php artisan vendor:publish --tag=file-manager
-php artisan vendor:publish --tag=file-manager
 php artisan vendor:publish --tag=file-manager
 ```
 
@@ -88,13 +113,13 @@ These controllers are already defined and handle file uploads, deletions, folder
 Refer to the included Blade example view for implementation:
 
 ```blade
-@include('file-manager::example')
+@include('file-manager::example_file_upload')
 ```
 
 Or check the JS helper file:
 
 ```html
-<script src="{{ asset('vendor/file-manager/filemanager.js') }}"></script>
+<script src="{{ asset('assets/filemanager.js') }}"></script>
 ```
 
 Use this JavaScript to send your form data via AJAX.
@@ -103,7 +128,7 @@ Use this JavaScript to send your form data via AJAX.
 
 ## 📎 Example
 
-See the included `example.blade.php` for how to create an AJAX-based file upload form.
+See the included `example_file_upload.blade.php` for how to create an AJAX-based file upload form.
 
 You can modify this view to match your front-end design or integrate it into your admin panel.
 
