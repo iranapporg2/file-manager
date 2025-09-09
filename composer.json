@@ -1,0 +1,34 @@
+{
+    "name": "itsunn/file-manager",
+    "description": "Upload file with different drivers",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "itsunn\\Filemanager\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Omid Aghakhani",
+            "email": "info@iranapp.org"
+        }
+    ],
+	"minumum-stability":"stable",
+    "require": {
+        "php": "^8.1",
+        "ext-curl": "*",
+        "league/flysystem": "^3.30",
+        "league/flysystem-aws-s3-v3": "^3.29",
+        "league/flysystem-ftp": "^3.29",
+        "ext-zip": "*",
+        "laravel/framework": "^12.28"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "itsunn\\Filemanager\\MainProvider",
+            ]
+        }
+    }
+}
