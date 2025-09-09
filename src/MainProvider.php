@@ -35,7 +35,7 @@
 
 		public function register()
 		{
-			$this->mergeConfigFrom(__DIR__.'/config/filemanager.php', 'filemanager');
+			$this->mergeConfigFrom(__DIR__.'/other/config/filemanager.php', 'filemanager');
 		}
 
 	}
