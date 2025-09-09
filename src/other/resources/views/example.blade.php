@@ -47,7 +47,7 @@
 </div>
 
 </body>
-<script src="{{asset('filemanager.js')}}?v={{filemtime('filemanager.js')}}"></script>
+<script src="{{asset('assets/filemanager.js')}}?v={{filemtime('assets/filemanager.js')}}"></script>
 <script>
 
     function onStartEvent() {

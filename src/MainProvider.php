@@ -19,7 +19,7 @@
 			],'file-manager');
 
 			$this->publishes([
-				__DIR__.'/other/public'  => public_path('assets'),
+				__DIR__.'/other/public'  => public_path(),
 			],'file-manager');
 
 			$this->publishes([
